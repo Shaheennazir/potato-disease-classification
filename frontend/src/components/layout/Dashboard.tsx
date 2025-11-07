@@ -8,13 +8,10 @@ export const Dashboard: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [data, setData] = useState<PredictionResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [recentScans, setRecentScans] = useState<PredictionResponse[]>([]);
 
   const sendFile = useCallback(async () => {
     if (selectedFile) {
-      setIsLoading(true);
-      
       try {
         const response = await predictImage(selectedFile);
         setData(response);
@@ -23,17 +20,10 @@ export const Dashboard: React.FC = () => {
       } catch (error) {
         console.error("Upload failed:", error);
         setData({ class: "Error", confidence: 0 });
-      } finally {
-        setIsLoading(false);
       }
     }
   }, [selectedFile]);
 
-  const clearData = useCallback(() => {
-    setData(null);
-    setSelectedFile(null);
-    setPreview(null);
-  }, []);
 
   const onSelectFile = useCallback((file: File) => {
     setSelectedFile(file);

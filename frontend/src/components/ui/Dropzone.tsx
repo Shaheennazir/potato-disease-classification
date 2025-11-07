@@ -1,35 +1,11 @@
-import { useState, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 
 interface DropzoneProps {
   onFileSelect: (file: File) => void;
 }
 
 export const Dropzone: React.FC<DropzoneProps> = ({ onFileSelect }) => {
-  const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(false);
-    
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('image/')) {
-        onFileSelect(file);
-      }
-    }
-  }, [onFileSelect]);
 
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
