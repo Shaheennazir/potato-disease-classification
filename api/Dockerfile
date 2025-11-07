@@ -15,9 +15,6 @@ RUN apt-get update && apt-get install -y \
 # Copy application code
 COPY . .
 
-# Copy the saved model from the parent directory
-COPY ../saved_models/1 /app/saved_model
-
 # Expose port
 EXPOSE 8000
 

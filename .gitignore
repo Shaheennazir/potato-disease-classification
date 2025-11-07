@@ -5,3 +5,5 @@ __pycache__
 .ipynb_checkpoints
 models.config
 PlantVillage/
+.env
+node_modules

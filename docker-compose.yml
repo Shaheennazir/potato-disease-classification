@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   api:
@@ -28,5 +27,5 @@ services:
       - ${DOCKER_NETWORK_NAME}
 
 networks:
-  ${DOCKER_NETWORK_NAME}:
+  potato-disease-network:
     driver: bridge

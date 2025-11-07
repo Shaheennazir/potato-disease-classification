@@ -153,18 +153,51 @@ export const ImageUpload = () => {
   let confidence = 0;
 
   const sendFile = async () => {
-    if (image) {
-      let formData = new FormData();
-      formData.append("file", selectedFile);
-      let res = await axios({
-        method: "post",
-        url: process.env.REACT_APP_API_URL,
-        data: formData,
+    if (image && selectedFile) {
+      setIsloading(true); // Set loading state at the beginning
+      
+      console.log("Selected file object:", selectedFile);
+      console.log("File properties:", {
+        name: selectedFile.name,
+        type: selectedFile.type,
+        size: selectedFile.size
       });
-      if (res.status === 200) {
-        setData(res.data);
+      
+      let formData = new FormData();
+      
+      // Create a proper file object for FormData
+      const fileToUpload = new File([selectedFile], selectedFile.name || "image.jpg", {
+        type: selectedFile.type || "image/jpeg"
+      });
+      
+      formData.append("file", fileToUpload);
+      
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/predict";
+      console.log("FormData created, sending to:", apiUrl);
+      
+      try {
+        let res = await axios({
+          method: "post",
+          url: apiUrl,
+          data: formData,
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        });
+        
+        console.log("API response:", res);
+        
+        if (res.status === 200) {
+          setData(res.data);
+        }
+      } catch (error) {
+        console.error("Upload failed:", error);
+        console.error("Error details:", error.response?.data || error.message);
+        // Show error to user
+        setData({ class: "Error", confidence: 0 });
+      } finally {
+        setIsloading(false);
       }
-      setIsloading(false);
     }
   }
 
@@ -188,7 +221,6 @@ export const ImageUpload = () => {
     if (!preview) {
       return;
     }
-    setIsloading(true);
     sendFile();
   }, [preview]);
 
@@ -199,6 +231,8 @@ export const ImageUpload = () => {
       setData(undefined);
       return;
     }
+    // Log the file object to understand its structure
+    console.log("File received from DropzoneArea:", files[0]);
     setSelectedFile(files[0]);
     setData(undefined);
     setImage(true);
