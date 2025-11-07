@@ -1,14 +1,20 @@
-# Docker Deployment Guide for Potato Disease Classification
+# 🐳 Docker Deployment Guide for Potato Disease Classification
 
 This guide explains how to deploy the Potato Disease Classification application using Docker.
 
-## Prerequisites
+For a more comprehensive understanding of the system, see:
+- [Main Documentation](README.md)
+- [Architecture Overview](ARCHITECTURE.md)
+- [User Guides](USER_GUIDES.md)
+
+## 📋 Prerequisites
 
 - Docker installed on your system
 - Docker Compose installed
 - At least 2GB of available RAM
+- Git (for cloning the repository)
 
-## Quick Start
+## 🚀 Quick Start
 
 1. **Clone or download the project**
    ```bash
@@ -31,7 +37,7 @@ This guide explains how to deploy the Potato Disease Classification application 
    - Frontend: http://localhost:3000
    - API: http://localhost:8000
 
-## Architecture
+## 🏗️ Architecture
 
 The application consists of two main services:
 
@@ -43,10 +49,10 @@ The application consists of two main services:
 
 ### 2. Frontend Service (`frontend/`)
 - **Port**: 3000
-- **Technology**: ReactJS with Material-UI
+- **Technology**: ReactJS with Tailwind CSS
 - **Function**: User interface for uploading images and viewing results
 
-## Docker Commands
+## 🐳 Docker Commands
 
 ### Build Services
 ```bash
@@ -102,15 +108,34 @@ docker-compose ps
 docker-compose top
 ```
 
-## Environment Variables
+## ⚙️ Environment Variables
 
 ### API Service
 - `PYTHONPATH=/app` - Python path configuration
 
 ### Frontend Service
-- `REACT_APP_API_URL=http://api:8000/predict` - API endpoint URL
+- `VITE_API_URL=http://api:8000/predict` - API endpoint URL
 
-## Customization
+### Root Configuration
+The `.env` file in the root directory controls:
+```bash
+# API Service Configuration
+API_PORT=8000
+API_HOST=0.0.0.0
+
+# Frontend Service Configuration
+FRONTEND_PORT=3000
+VITE_API_URL=http://localhost:8000/predict
+
+# Model Configuration
+MODEL_PATH=./saved_models/1
+MODEL_VERSION=1
+
+# Docker Network Configuration
+DOCKER_NETWORK_NAME=potato-disease-network
+```
+
+## 🛠️ Customization
 
 ### Changing Ports
 Edit `docker-compose.yml` to change exposed ports:
@@ -134,25 +159,57 @@ services:
       - ./saved_models/2:/app/saved_model  # Use version 2 model
 ```
 
-## Troubleshooting
+### Resource Allocation
+Configure CPU and memory limits:
+```yaml
+services:
+  api:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+```
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
 1. **Port already in use**
    - Change ports in `docker-compose.yml`
-   - Stop other services using the ports
+   - Stop other services using the ports:
+     ```bash
+     # Find process using port 8000
+     lsof -i :8000  # Linux/macOS
+     netstat -ano | findstr :8000  # Windows
+     ```
 
 2. **Model not found**
    - Ensure `saved_models/1` directory exists with model files
-   - Check file permissions
+   - Check file permissions:
+     ```bash
+     ls -la saved_models/1/
+     ```
 
 3. **Build failures**
-   - Clear Docker cache: `docker-compose build --no-cache`
-   - Check available disk space
+   - Clear Docker cache:
+     ```bash
+     docker-compose build --no-cache
+     ```
+   - Check available disk space:
+     ```bash
+     df -h
+     ```
 
 4. **API connection errors**
-   - Verify frontend environment variable `REACT_APP_API_URL`
-   - Check if API service is running: `docker-compose ps`
+   - Verify frontend environment variable `VITE_API_URL`
+   - Check if API service is running:
+     ```bash
+     docker-compose ps
+     ```
 
 ### Debugging
 
@@ -170,16 +227,53 @@ curl http://localhost:8000/ping
 curl -X POST -F "file=@test_image.jpg" http://localhost:8000/predict
 ```
 
-## Production Deployment
+## 🏭 Production Deployment
 
 For production deployment, consider:
 
-1. **Using a reverse proxy** (nginx) for SSL termination
-2. **Setting up monitoring** and logging
-3. **Using environment-specific configurations**
-4. **Implementing health checks**
+1. **Reverse Proxy**: Use nginx for SSL termination and load balancing
+2. **Monitoring**: Set up logging and monitoring with tools like Prometheus
+3. **Environment-specific Configurations**: Use separate .env files for different environments
+4. **Health Checks**: Implement container health checks
+5. **Security**: Use secrets management for sensitive configuration
+6. **Scaling**: Configure horizontal scaling with orchestration tools
 
-## Development Workflow
+### Production Docker Compose Example
+```yaml
+version: '3.8'
+services:
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./saved_models/1:/app/saved_model
+    environment:
+      - PYTHONPATH=/app
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://api:8000/predict
+    depends_on:
+      - api
+```
+
+## 🛠️ Development Workflow
 
 ### Local Development with Docker
 ```bash
@@ -200,7 +294,7 @@ docker-compose up --build
 2. **Frontend**: Update `frontend/package.json`
 3. **Rebuild**: `docker-compose build --no-cache`
 
-## File Structure
+## 📁 File Structure
 
 ```
 potato-disease-classification/
@@ -215,13 +309,127 @@ potato-disease-classification/
 ├── saved_models/
 │   └── 1/  # Pre-trained model
 ├── docker-compose.yml
+├── .env.example
 └── DOCKER.md
 ```
 
-## Support
+## 🔧 Advanced Configuration
+
+### Multi-stage Builds
+The Dockerfiles use multi-stage builds for optimization:
+
+#### API Dockerfile
+```dockerfile
+# Build stage
+FROM python:3.8-slim as builder
+# ... build dependencies ...
+
+# Runtime stage
+FROM python:3.8-slim
+# ... copy artifacts and run ...
+```
+
+#### Frontend Dockerfile
+```dockerfile
+# Build stage
+FROM node:16-alpine as builder
+# ... build application ...
+
+# Runtime stage
+FROM node:16-alpine
+# ... serve built files ...
+```
+
+### Network Configuration
+Services communicate through a custom bridge network:
+```yaml
+networks:
+  potato-disease-network:
+    driver: bridge
+```
+
+### Volume Management
+Persistent data storage (if needed):
+```yaml
+volumes:
+  model-data:
+    driver: local
+```
+
+## 📊 Performance Tuning
+
+### Container Optimization
+1. **Use Alpine-based images** for smaller footprint
+2. **Minimize layers** in Dockerfiles
+3. **Clean up** temporary files during build
+
+### Resource Management
+```yaml
+services:
+  api:
+    # CPU allocation
+    cpus: 1.0
+    # Memory limits
+    mem_limit: 2g
+    mem_reservation: 1g
+    # Restart policy
+    restart: unless-stopped
+```
+
+## 🔒 Security Considerations
+
+### Image Security
+- Regularly update base images
+- Scan images for vulnerabilities
+- Use specific image tags instead of `latest`
+
+### Runtime Security
+```yaml
+services:
+  api:
+    # Read-only root filesystem
+    read_only: true
+    # Drop unnecessary capabilities
+    cap_drop:
+      - ALL
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+```
+
+### Secrets Management
+For sensitive data, use Docker secrets:
+```yaml
+services:
+  api:
+    secrets:
+      - db_password
+```
+
+## 🆘 Support
 
 For issues with Docker deployment:
-1. Check Docker and Docker Compose versions
-2. Review application logs
-3. Verify system resources
-4. Consult Docker documentation
+
+1. **Check Docker and Docker Compose versions**
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
+
+2. **Review application logs**
+   ```bash
+   docker-compose logs --tail=100
+   ```
+
+3. **Verify system resources**
+   ```bash
+   docker info
+   ```
+
+4. **Consult Docker documentation**
+   - [Docker Documentation](https://docs.docker.com/)
+   - [Docker Compose Documentation](https://docs.docker.com/compose/)
+
+For application-specific issues, see:
+- [Troubleshooting Guide](TROUBLESHOOTING.md)
+- [Development Guide](DEVELOPMENT.md)
