@@ -20,5 +20,5 @@ RUN npm install -g serve
 # Expose port
 EXPOSE 3000
 
-# Serve the built application
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Serve the built application (Vite outputs to dist directory)
+CMD ["serve", "-s", "dist", "-l", "3000"]
