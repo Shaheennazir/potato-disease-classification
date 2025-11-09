@@ -1,6 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onLogout?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onLogout }) => {
   const navigate = useNavigate();
 
   return (
@@ -17,6 +21,14 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-9">
           <a className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">History</a>
           <a className="text-white/80 hover:text-white text-sm1 font-medium leading-normal transition-colors" href="#">About</a>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors"
+            >
+              Logout
+            </button>
+          )}
         </div>
       </nav>
       <button className="md:hidden text-white">
