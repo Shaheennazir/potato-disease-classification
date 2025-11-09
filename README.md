@@ -13,6 +13,8 @@ A comprehensive machine learning application for detecting potato plant diseases
 - **AI-Powered Disease Detection**: Uses a trained CNN model to identify potato leaf diseases
 - **Multi-Platform Support**: Web application, mobile app, and RESTful API
 - **Real-time Classification**: Instant disease detection with confidence scores
+- **User Authentication**: Secure user accounts with Supabase Auth
+- **Data Persistence**: Scan history stored in Supabase database
 - **Docker Deployment**: Containerized services for easy deployment
 - **Cloud Ready**: Supports deployment on Google Cloud Platform
 - **Responsive UI**: Modern, user-friendly interface built with React and Tailwind CSS
@@ -175,6 +177,28 @@ cp frontend/.env.example frontend/.env
 
 # Mobile App
 cp mobile-app/.env.example mobile-app/.env
+```
+
+## 🔐 Supabase Integration
+
+This project uses Supabase for user authentication and data storage. To set up Supabase:
+
+1. Create a Supabase project at [supabase.com](https://supabase.com/)
+2. Get your project URL and API keys from the Supabase dashboard
+3. Update the environment variables in `.env.supabase` with your credentials
+4. Run the SQL schema in `supabase-schema.sql` to create the required tables
+5. Enable email authentication in your Supabase project settings
+
+### Environment Variables
+
+```bash
+# Frontend environment variables (.env file)
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Backend environment variables (.env file)
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ```
 
 ## 📚 Documentation

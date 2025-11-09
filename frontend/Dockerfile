@@ -5,8 +5,16 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --from-lock-json
+# Configure npm for better network reliability
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set timeout 60000 && \
+    npm config set retry 5 && \
+    npm config set fetch-retry-mintimeout 15000 && \
+    npm config set fetch-retry-maxtimeout 60000
+
+# Install dependencies with fallback
+RUN npm ci --prefer-offline --no-audit || \
+    (echo "npm ci failed, trying npm install" && npm install --prefer-offline --no-audit)
 
 # Copy source code
 COPY . .

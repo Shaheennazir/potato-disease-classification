@@ -35,7 +35,7 @@ export const LandingPage: React.FC = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              AI-Powered Disease Detection
+              Potato Disease Classification
             </div>
             <h1 className="text-white text-4xl sm:text-5xl md:text-7xl font-bold leading-tight tracking-tighter">Protect Your Harvest Before It's Too Late</h1>
             <p className="text-white/60 text-lg md:text-xl font-normal leading-normal max-w-2xl">Effortlessly identify potato leaf diseases with a single photo. Our advanced AI provides fast, accurate analysis to help you safeguard your crops.</p>

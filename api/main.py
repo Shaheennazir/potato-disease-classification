@@ -13,6 +13,15 @@ import numpy as np
 from io import BytesIO
 from PIL import Image
 import tensorflow as tf
+import os
+
+# Import Supabase client
+try:
+    from supabase_client import get_supabase_client, save_scan_record
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    print("Supabase client not available")
 
 app = FastAPI()
 
@@ -58,6 +67,19 @@ async def predict(
         confidence = np.max(predictions[0])
         
         logger.info(f"Prediction: {predicted_class}, Confidence: {confidence}")
+        
+        # Save to Supabase if available
+        if SUPABASE_AVAILABLE:
+            try:
+                # In a real implementation, you would get the user_id from the request
+                # For now, we'll use a placeholder
+                user_id = "anonymous"
+                image_url = f"images/{file.filename}"  # Placeholder URL
+                save_scan_record(user_id, image_url, predicted_class, float(confidence))
+                logger.info("Scan record saved to Supabase")
+            except Exception as e:
+                logger.error(f"Error saving to Supabase: {str(e)}")
+        
         return {
             'class': predicted_class,
             'confidence': float(confidence)

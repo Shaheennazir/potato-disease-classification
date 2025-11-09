@@ -3,26 +3,41 @@ import { Dropzone } from '../ui/Dropzone';
 import { predictImage } from '../../lib/api';
 import { PredictionResponse } from '../../types';
 import { RecentScans } from './RecentScans';
+import { getCurrentUser } from '../../lib/supabase';
+import { saveScanRecord, getUserScanRecords } from '../../lib/supabase-db';
 
 export const Dashboard: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [data, setData] = useState<PredictionResponse | null>(null);
   const [recentScans, setRecentScans] = useState<PredictionResponse[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const sendFile = useCallback(async () => {
-    if (selectedFile) {
+    if (selectedFile && userId) {
       try {
         const response = await predictImage(selectedFile);
         setData(response);
         // Add to recent scans
         setRecentScans(prev => [response, ...prev.slice(0, 2)]);
+        
+        // Save to Supabase database
+        try {
+          await saveScanRecord({
+            user_id: userId,
+            image_url: preview || '',
+            prediction: response.class,
+            confidence: response.confidence
+          });
+        } catch (dbError) {
+          console.error('Error saving scan record:', dbError);
+        }
       } catch (error) {
         console.error("Upload failed:", error);
         setData({ class: "Error", confidence: 0 });
       }
     }
-  }, [selectedFile]);
+  }, [selectedFile, userId, preview]);
 
 
   const onSelectFile = useCallback((file: File) => {
@@ -30,18 +45,41 @@ export const Dashboard: React.FC = () => {
     setData(null);
   }, []);
 
+  // Create preview URL when file is selected
   useEffect(() => {
     if (!selectedFile) {
-      setPreview(null);
       return;
     }
+
     const objectUrl = URL.createObjectURL(selectedFile);
     setPreview(objectUrl);
 
-    return () => {
-      URL.revokeObjectURL(objectUrl);
-    };
+    // Clean up the object URL when component unmounts or file changes
+    return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
+
+  useEffect(() => {
+    const fetchUserAndScans = async () => {
+      const user = await getCurrentUser();
+      if (user) {
+        setUserId(user.id);
+        // Load user's recent scans
+        try {
+          const scans = await getUserScanRecords(user.id);
+          // Convert Supabase records to PredictionResponse format
+          const formattedScans = scans.map(scan => ({
+            class: scan.prediction,
+            confidence: scan.confidence
+          }));
+          setRecentScans(formattedScans);
+        } catch (error) {
+          console.error('Error loading scan records:', error);
+        }
+      }
+    };
+
+    fetchUserAndScans();
+  }, []);
 
   useEffect(() => {
     if (!preview) {
@@ -117,10 +155,7 @@ export const Dashboard: React.FC = () => {
                   </p>
                   
                   {/* Action Button */}
-                  <button className="flex mt-2 min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-11 px-5 bg-primary text-[#1A1A1A] text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
-                    <span className="truncate">View Recommendations</span>
-                    <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>arrow_forward</span>
-                  </button>
+                  {/* Removed View Recommendations button as per user request */}
                 </div>
               </div>
             </div>
