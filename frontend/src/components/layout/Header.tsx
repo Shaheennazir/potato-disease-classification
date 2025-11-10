@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../../lib/auth';
 
-interface HeaderProps {
-  onLogout?: () => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ onLogout }) => {
+export const Header: React.FC = () => {
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/');
+  };
 
   return (
     <header className="w-full max-w-7xl flex items-center justify-between whitespace-nowrap border-b border-solid border-white/10 px-4 sm:px-6 py-4">
@@ -20,13 +22,20 @@ export const Header: React.FC<HeaderProps> = ({ onLogout }) => {
       <nav className="hidden md:flex flex-1 justify-end gap-8">
         <div className="flex items-center gap-9">
           <a className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">History</a>
-          <a className="text-white/80 hover:text-white text-sm1 font-medium leading-normal transition-colors" href="#">About</a>
-          {onLogout && (
+          <a className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">About</a>
+          {authService.isAuthenticated() ? (
             <button
-              onClick={onLogout}
+              onClick={handleLogout}
               className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors"
             >
               Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors"
+            >
+              Sign Up / Login
             </button>
           )}
         </div>

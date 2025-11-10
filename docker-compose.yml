@@ -8,6 +8,7 @@ services:
       - "${API_PORT}:8000"
     volumes:
       - ${MODEL_PATH}:/app/saved_model
+      - ./data:/app/data
     environment:
       - PYTHONPATH=/app
     networks:
